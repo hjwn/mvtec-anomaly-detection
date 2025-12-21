@@ -15,7 +15,7 @@ class MVTecAD(Dataset):
       mask : Tensor [1,H,W] or None (good has no mask)
       meta : dict (category, defect_type, filename)
     """
-    def __init__(self, root: str, category: str, mode: str = "train", image_size: int = 224):
+    def __init__(self, root: str, category: str, mode: str = "train", image_size: int = 224, normalize: str = "imagenet"):
         self.root = Path(root)
         self.category = category
         self.mode = mode
@@ -23,12 +23,23 @@ class MVTecAD(Dataset):
         if mode not in ("train", "test"):
             raise ValueError("mode must be 'train' or 'test'")
 
-        self.img_transform = transforms.Compose([
+        imagenet_mean = [0.485, 0.456, 0.406]
+        imagenet_std  = [0.229, 0.224, 0.225]
+
+        img_tf = [
             transforms.Resize((image_size, image_size)),
             transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                 std=[0.229, 0.224, 0.225]),
-        ])
+        ]
+
+        if normalize == "imagenet":
+            img_tf.append(transforms.Normalize(mean=imagenet_mean, std=imagenet_std))
+        elif normalize == "none":
+            pass
+        else:
+            raise ValueError("normalize must be 'imagenet' or 'none'")
+
+        self.img_transform = transforms.Compose(img_tf)
+
 
         self.mask_transform = transforms.Compose([
             transforms.Resize((image_size, image_size)),
