@@ -53,7 +53,7 @@ pip install -r requirements.txt
 
 # MVTec 이상 탐지 (Anomaly Detection)
 
-본 프로젝트는 **MVTec AD 데이터셋**을 사용하여  
+본 프로젝트는 **MVTec AD 데이터셋**을 사용하여
 **CPU 기반(노트북 환경)**에서 이상 탐지(결함 탐지) 기법들을 구현하고 비교한다.
 
 학습 기반 방법, 통계 기반 방법, 그리고 최신 메모리 기반 SOTA 기법을  
