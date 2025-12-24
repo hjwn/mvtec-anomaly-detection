@@ -36,6 +36,35 @@ All methods share the same backbone and evaluation pipeline for fair comparison.
 - Dataset is **not included** in this repository.
 - Expected directory structure:
 
+## Directory
+```text
+data/mvtec_ad/
+  bottle/
+    train/
+      good/*.png
+    test/
+      good/*.png
+      broken_large/*.png
+      broken_small/*.png
+    ground_truth/
+      broken_large/*_mask.png
+      broken_small/*_mask.png
+  capsule/
+  cable/
+  carpet/
+  grid/
+  hazelnut/
+  leather/
+  metal_nut/
+  pill/
+  screw/
+  tile/
+  toothbrush/
+  transistor/
+  wood/
+  zipper/
+```
+
 ## Environment
 
 - Python 3.11
@@ -49,12 +78,41 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
+## Outputs
+For each category, results are saved as:
+```perl
+outputs/<category>/
+  ae/
+  padim/
+  patchcore/
+```
+
+Each method produces:
+
+*_img.png : input image
+
+*_gt.png : ground truth mask (white = defect)
+
+*_map.png : anomaly heatmap (grayscale)
+
+*_overlay.png : input image with heatmap overlay
+
+A summary table is also generated:
+outputs/summary.csv
+
+## Evaluation Metrics
+- Image AUROC
+AUROC computed using a single anomaly score per image
+
+- Pixel AUROC
+AUROC computed using pixel-level anomaly heatmaps and ground-truth masks
+
 ---
 
 # MVTec 이상 탐지 (Anomaly Detection)
 
 본 프로젝트는 **MVTec AD 데이터셋**을 사용하여 
-**CPU 기반(노트북 환경)**에서 이상 탐지(결함 탐지) 기법들을 구현하고 비교한다.
+CPU 기반(노트북 환경)에서 이상 탐지(결함 탐지) 기법들을 구현하고 비교한다.
 
 학습 기반 방법, 통계 기반 방법, 그리고 최신 메모리 기반 SOTA 기법을  
 **동일한 실험 파이프라인**에서 비교하는 것을 목표로 한다.
