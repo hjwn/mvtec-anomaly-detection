@@ -2,6 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import torch
 from torch.utils.data import DataLoader
+from src.methods.base import MethodOutput
 
 @dataclass
 class PatchCoreConfig:
@@ -75,8 +76,11 @@ class PatchCoreMethod:
 
             maps = torch.stack(maps)                # (B,H,W)
             img_scores = maps.view(B, -1).max(dim=1).values
+        return MethodOutput(
+            scores=img_scores.detach().cpu(),            # (B,)
+            heatmaps=maps.detach().cpu()[:, None, :, :]  # (B,1,H,W)
+        )
 
-        return type("Out", (), {"maps": maps.cpu(), "scores": img_scores.cpu()})
 
     def save(self, path: str):
         if self.memory is None:

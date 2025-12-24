@@ -3,6 +3,7 @@ from dataclasses import dataclass
 import torch
 import numpy as np
 from torch.utils.data import DataLoader
+from src.methods.base import MethodOutput
 
 @dataclass
 class PaDiMConfig:
@@ -89,7 +90,19 @@ class PaDiMMethod:
             maps = torch.stack(maps)                      # (B, H, W)
             img_scores = maps.view(B, -1).max(dim=1).values
 
-        return type("Out", (), {
-            "maps": maps.cpu(),
-            "scores": img_scores.cpu()
-        })
+        return MethodOutput(
+            scores=img_scores.detach().cpu(),
+            heatmaps=maps.detach().cpu()[:, None, :, :]
+        )
+            
+    def save(self, path: str):
+        state = {
+            "mean": self.mean.cpu(),
+            "inv_cov": self.inv_cov.cpu(),
+        }
+        torch.save(state, path)
+
+    def load(self, path: str):
+        state = torch.load(path, map_location=self.device)
+        self.mean = state["mean"].to(self.device)
+        self.inv_cov = state["inv_cov"].to(self.device)
