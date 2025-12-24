@@ -14,3 +14,6 @@ data/mvtec_ad/
 
 # IDE
 .vscode/
+
+# Output image
+outputs/
