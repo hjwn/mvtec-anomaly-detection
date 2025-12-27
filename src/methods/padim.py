@@ -2,6 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import torch
 import numpy as np
+import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from src.methods.base import MethodOutput
 
@@ -37,6 +38,7 @@ class PaDiMMethod:
 
                 # concat -> (B, C, H, W)
                 f_cat = torch.cat([f2, f3], dim=1)
+                f_cat = F.normalize(f_cat, p=2, dim=1)
                 B, C, H, W = f_cat.shape
 
                 # (B*H*W, C)
@@ -77,6 +79,7 @@ class PaDiMMethod:
             )
 
             f_cat = torch.cat([f2, f3], dim=1)  # (B, C, H, W)
+            f_cat = F.normalize(f_cat, p=2, dim=1)
             B, C, H, W = f_cat.shape
 
             f_cat = f_cat.permute(0, 2, 3, 1).reshape(B, H * W, C)
