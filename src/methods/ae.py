@@ -70,7 +70,7 @@ class AEMethod:
         x = x.to(self.device)
         recon = self.model(x)
         heat = (x - recon).pow(2).mean(dim=1, keepdim=True)   # (B,1,H,W)
-        scores = heat.mean(dim=(1,2,3))                       # (B,)
+        scores = heat.amax(dim=(1,2,3))                       # (B,)
         return MethodOutput(scores=scores.cpu(), heatmaps=heat.cpu())
 
     def save(self, path: str) -> None:

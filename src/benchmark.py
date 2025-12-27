@@ -7,6 +7,7 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from PIL import Image
+from torchvision.transforms import functional as TF
 
 from src.datasets.mvtec import MVTecAD
 from src.metrics.auroc import auroc
@@ -68,7 +69,6 @@ def run_one(method_name: str, method, train_loader, test_loader, out_dir: Path, 
         out = method.predict(x)  # must have .scores (B,) and .heatmaps (B,1,H,W) or (B,H,W)
 
         y_true_img.extend(y.numpy().tolist())
-        y_score_img.extend(out.scores.numpy().tolist())
         all_masks.append(mask.numpy())  # (B,1,H,W)
 
         # pixel-level collect
@@ -87,6 +87,13 @@ def run_one(method_name: str, method, train_loader, test_loader, out_dir: Path, 
         # align heatmap spatial size to mask size for pixel metrics/visuals
         if hm.shape[-2:] != mask.shape[-2:]:
             hm = F.interpolate(hm, size=mask.shape[-2:], mode="bilinear", align_corners=False)
+
+        # gaussian smoothing for more stable image-level scoring
+        hm = TF.gaussian_blur(hm, kernel_size=7, sigma=2.0)
+
+        # recompute image scores from (smoothed) heatmaps
+        scores = hm.amax(dim=(1, 2, 3)).detach().cpu().numpy().tolist()
+        y_score_img.extend(scores)
 
         all_maps.append(hm.cpu().numpy())  # (B,1,H,W)
 
@@ -161,7 +168,11 @@ def main():
     ap.add_argument("--coreset_ratio", type=float, default=0.1)  # PatchCore
     ap.add_argument("--out", type=str, default="outputs/bottle")
     ap.add_argument("--save_n", type=int, default=10)
+    ap.add_argument("--seed", type=int, default=0)
     args = ap.parse_args()
+
+    np.random.seed(args.seed)
+    torch.manual_seed(args.seed)
 
     out_root = Path(args.out)
     out_root.mkdir(parents=True, exist_ok=True)
