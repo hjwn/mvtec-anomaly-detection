@@ -26,7 +26,9 @@ in terms of **performance (AUROC)** and **runtime efficiency**.
   - Memory-based SOTA anomaly detection method  
   - Stores normal patch features and detects anomalies via kNN distance  
 
-All methods share the same backbone and evaluation pipeline for fair comparison.
+PaDiM and PatchCore share the same ResNet backbone and evaluation pipeline.
+AE uses its own encoder-decoder and is trained on unnormalized inputs, while
+PaDiM/PatchCore use ImageNet-normalized inputs for the pretrained backbone.
 
 ---
 
@@ -102,7 +104,7 @@ outputs/summary.csv
 
 ## Evaluation Metrics
 - Image AUROC
-AUROC computed using a single anomaly score per image
+AUROC computed using a single anomaly score per image (max over heatmap)
 
 - Pixel AUROC
 AUROC computed using pixel-level anomaly heatmaps and ground-truth masks
@@ -134,7 +136,9 @@ CPU 기반(노트북 환경)에서 이상 탐지(결함 탐지) 기법들을 구
   - 메모리 기반 SOTA 이상 탐지 기법  
   - 정상 패치 특징을 저장하고 kNN 거리 기반으로 이상 판단  
 
-모든 방법은 **동일한 backbone과 평가 기준**을 사용하여 공정하게 비교된다.
+PaDiM과 PatchCore는 동일한 ResNet backbone과 평가 기준을 사용한다.
+AE는 별도의 인코더-디코더를 사용하며 입력 정규화는 하지 않는다.
+PaDiM/PatchCore는 사전학습 backbone을 위해 ImageNet 정규화를 사용한다.
 
 ---
 
