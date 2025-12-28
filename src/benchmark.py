@@ -22,9 +22,17 @@ import src.methods.patchcore as patchcore_mod
 print("[DEBUG] padim module file:", padim_mod.__file__)
 print("[DEBUG] patchcore module file:", patchcore_mod.__file__)
 
-def tensor_to_pil(x: torch.Tensor) -> Image.Image:
-    # x: (3,H,W) in [0,1] expected
-    x = x.detach().cpu().clamp(0, 1)
+def _unnormalize_imagenet(x: torch.Tensor) -> torch.Tensor:
+    mean = torch.tensor([0.485, 0.456, 0.406], device=x.device).view(3, 1, 1)
+    std = torch.tensor([0.229, 0.224, 0.225], device=x.device).view(3, 1, 1)
+    return x * std + mean
+
+def tensor_to_pil(x: torch.Tensor, normalize: str) -> Image.Image:
+    # x: (3,H,W); if imagenet-normalized, undo for visualization
+    x = x.detach().cpu()
+    if normalize == "imagenet":
+        x = _unnormalize_imagenet(x)
+    x = x.clamp(0, 1)
     arr = (x.permute(1, 2, 0).numpy() * 255).astype(np.uint8)
     return Image.fromarray(arr)
 
@@ -52,7 +60,16 @@ def pixel_auroc(all_masks, all_maps) -> float:
     return float(roc_auc_score(y_true, y_score))
 
 
-def run_one(method_name: str, method, train_loader, test_loader, out_dir: Path, save_n: int = 10):
+def run_one(
+    method_name: str,
+    method,
+    train_loader,
+    test_loader,
+    out_dir: Path,
+    normalize: str,
+    save_n: int = 10,
+    save_all: bool = False,
+):
     # ---- fit ----
     t0 = time.perf_counter()
     method.fit(train_loader)
@@ -98,12 +115,12 @@ def run_one(method_name: str, method, train_loader, test_loader, out_dir: Path, 
         all_maps.append(hm.cpu().numpy())  # (B,1,H,W)
 
         # save some visuals
-        if saved < save_n:
+        if save_all or saved < save_n:
             B = x.shape[0]
             for i in range(B):
-                if saved >= save_n:
+                if (not save_all) and saved >= save_n:
                     break
-                img = tensor_to_pil(x[i])
+                img = tensor_to_pil(x[i], normalize=normalize)
                 gt  = map_to_pil(mask[i,0])
                 hm_img  = map_to_pil(hm[i, 0])
                 ov      = overlay_heatmap(img, hm_img)
@@ -168,6 +185,7 @@ def main():
     ap.add_argument("--coreset_ratio", type=float, default=0.1)  # PatchCore
     ap.add_argument("--out", type=str, default="outputs/bottle")
     ap.add_argument("--save_n", type=int, default=10)
+    ap.add_argument("--save_all", action="store_true")
     ap.add_argument("--seed", type=int, default=0)
     args = ap.parse_args()
 
@@ -196,7 +214,18 @@ def main():
         ae_dir = cat_out_root / "ae"
         ae_dir.mkdir(exist_ok=True)
         ae = AEMethod(AEConfig(device=args.device, epochs=args.epochs))
-        results.append(run_one("ae", ae, train_loader, test_loader, ae_dir, save_n=args.save_n))
+        results.append(
+            run_one(
+                "ae",
+                ae,
+                train_loader,
+                test_loader,
+                ae_dir,
+                normalize="none",
+                save_n=args.save_n,
+                save_all=args.save_all,
+            )
+        )
 
         # PaDiM (imagenet normalization)
         train_loader, test_loader = build_loaders(
@@ -205,7 +234,18 @@ def main():
         padim_dir = cat_out_root / "padim"
         padim_dir.mkdir(exist_ok=True)
         padim = PaDiMMethod(PaDiMConfig(device=args.device, image_size=args.image_size), backbone)
-        results.append(run_one("padim", padim, train_loader, test_loader, padim_dir, save_n=args.save_n))
+        results.append(
+            run_one(
+                "padim",
+                padim,
+                train_loader,
+                test_loader,
+                padim_dir,
+                normalize="imagenet",
+                save_n=args.save_n,
+                save_all=args.save_all,
+            )
+        )
 
         # PatchCore (imagenet normalization)
         train_loader, test_loader = build_loaders(
@@ -215,7 +255,18 @@ def main():
         pc_dir.mkdir(exist_ok=True)
         pc = PatchCoreMethod(PatchCoreConfig(device=args.device, image_size=args.image_size,
                                              coreset_ratio=args.coreset_ratio, k=1), backbone)
-        results.append(run_one("patchcore", pc, train_loader, test_loader, pc_dir, save_n=args.save_n))
+        results.append(
+            run_one(
+                "patchcore",
+                pc,
+                train_loader,
+                test_loader,
+                pc_dir,
+                normalize="imagenet",
+                save_n=args.save_n,
+                save_all=args.save_all,
+            )
+        )
 
         # print table per category
         print(f"\n[benchmark] category={category} device={args.device}")
