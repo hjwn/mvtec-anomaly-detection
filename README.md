@@ -114,14 +114,14 @@ AUROC computed using pixel-level anomaly heatmaps and ground-truth masks
 # MVTec 이상 탐지 (Anomaly Detection)
 
 본 프로젝트는 **MVTec AD 데이터셋**을 사용하여 
-CPU 기반(노트북 환경)에서 이상 탐지(결함 탐지) 기법들을 구현하고 비교한다.
+CPU 기반(노트북 환경)에서 이상 탐지(결함 탐지) 기법들을 구현하고 비교합니다.
 
 학습 기반 방법, 통계 기반 방법, 그리고 최신 메모리 기반 SOTA 기법을  
-**동일한 실험 파이프라인**에서 비교하는 것을 목표로 한다.
+**동일한 실험 파이프라인**에서 비교하는 것을 목표로 합니다.
 
 ---
 
-## 구현된 방법
+## 비교 모델
 
 - **AutoEncoder (AE)**  
   - 학습 기반 이상 탐지 베이스라인  
@@ -136,18 +136,43 @@ CPU 기반(노트북 환경)에서 이상 탐지(결함 탐지) 기법들을 구
   - 메모리 기반 SOTA 이상 탐지 기법  
   - 정상 패치 특징을 저장하고 kNN 거리 기반으로 이상 판단  
 
-PaDiM과 PatchCore는 동일한 ResNet backbone과 평가 기준을 사용한다.
-AE는 별도의 인코더-디코더를 사용하며 입력 정규화는 하지 않는다.
-PaDiM/PatchCore는 사전학습 backbone을 위해 ImageNet 정규화를 사용한다.
-
+PaDiM과 PatchCore는 동일한 ResNet backbone과 평가 기준을 사용합니다.
+AE는 별도의 인코더-디코더를 사용하며 입력 정규화는 하지 않았습니다.
+PaDiM/PatchCore는 사전학습 backbone을 위해 ImageNet 정규화를 사용하였습니다.
 ---
 
 ## 데이터셋
 
 - **MVTec Anomaly Detection (MVTec AD)**
-- 데이터셋은 저장소에 포함되어 있지 않다.
-- 기대하는 디렉토리 구조는 다음과 같다:
-
+- 데이터셋은 repository에 포함되어 있지 않습니다.
+- 기대하는 디렉토리 구조는 다음과 같습니다:
+```text
+data/mvtec_ad/
+  bottle/
+    train/
+      good/*.png
+    test/
+      good/*.png
+      broken_large/*.png
+      broken_small/*.png
+    ground_truth/
+      broken_large/*_mask.png
+      broken_small/*_mask.png
+  capsule/
+  cable/
+  carpet/
+  grid/
+  hazelnut/
+  leather/
+  metal_nut/
+  pill/
+  screw/
+  tile/
+  toothbrush/
+  transistor/
+  wood/
+  zipper/
+```
 
 ---
 
@@ -162,4 +187,13 @@ PaDiM/PatchCore는 사전학습 backbone을 위해 ImageNet 정규화를 사용�
 
 ```bash
 pip install -r requirements.txt
+```
+
+## 결과 (Outputs)
+각 카테고리 별로 결과는 다음과 같이 저장됩니다.
+```perl
+outputs/<category>/
+  ae/
+  padim/
+  patchcore/
 ```
