@@ -139,7 +139,6 @@ CPU 기반(노트북 환경)에서 이상 탐지(결함 탐지) 기법들을 구
 PaDiM과 PatchCore는 동일한 ResNet backbone과 평가 기준을 사용합니다.
 AE는 별도의 인코더-디코더를 사용하며 입력 정규화는 하지 않았습니다.
 PaDiM/PatchCore는 사전학습 backbone을 위해 ImageNet 정규화를 사용하였습니다.
----
 
 ## 데이터셋
 
