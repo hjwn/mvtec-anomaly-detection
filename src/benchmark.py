@@ -177,7 +177,7 @@ def build_loaders(root: str, category: str, image_size: int, batch_size: int, no
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", type=str, default="data/mvtec_ad")
-    ap.add_argument("--category", type=str, default="bottle")
+    ap.add_argument("--category", type=str, default="all")
     ap.add_argument("--image_size", type=int, default=224)
     ap.add_argument("--batch_size", type=int, default=8)
     ap.add_argument("--device", type=str, default="cpu")
@@ -285,10 +285,10 @@ def main():
     write_csv(csv_path, all_rows)
     
     # average across categories if needed
-    if args.category == "all" and all_rows:
+    if len(categories) > 1 and all_rows:
         print("\n[benchmark] macro average by method")
-        print("| method | image AUROC | pixel AUROC |")
-        print("|---|---:|---:|")
+        print(f"| {'method':<9} | {'image AUROC':>11} | {'pixel AUROC':>11} |")
+        print(f"|:{'-'*9}-|{'-'*12}:|{'-'*12}:|")
         for method in sorted({r["method"] for r in all_rows}):
             rows = [r for r in all_rows if r["method"] == method]
             img_vals = [r["img_auc"] for r in rows if not np.isnan(r["img_auc"])]
@@ -297,7 +297,7 @@ def main():
             px_avg = float(np.mean(px_vals)) if px_vals else float("nan")
             img_s = "nan" if np.isnan(img_avg) else f"{img_avg:.4f}"
             px_s = "nan" if np.isnan(px_avg) else f"{px_avg:.4f}"
-            print(f"| {method} | {img_s} | {px_s} |")
+            print(f"| {method:<9} | {img_s:>11} | {px_s:>11} |")
 
     print(f"\nSaved outputs to: {out_root.resolve()}")
 
