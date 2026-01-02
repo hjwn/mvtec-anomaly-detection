@@ -127,11 +127,13 @@ def run_one(
 
                 dt = meta["defect_type"]
                 defect = dt[i] if isinstance(dt, (list, tuple)) else dt
+                defect_dir = out_dir / defect
+                defect_dir.mkdir(parents=True, exist_ok=True)
                 stem = f"{saved:03d}_{defect}"
-                img.save(out_dir / f"{stem}_img.png")
-                gt.save(out_dir  / f"{stem}_gt.png")
-                hm_img.save(out_dir  / f"{stem}_map.png")
-                ov.save(out_dir  / f"{stem}_overlay.png")
+                img.save(defect_dir / f"{stem}_img.png")
+                gt.save(defect_dir  / f"{stem}_gt.png")
+                hm_img.save(defect_dir  / f"{stem}_map.png")
+                ov.save(defect_dir  / f"{stem}_overlay.png")
                 saved += 1
 
     infer = time.perf_counter() - t1
@@ -163,9 +165,10 @@ def write_csv(path: Path, rows):
         writer.writerows(rows)
 
 def get_categories(root: Path, category_arg: str):
-    if category_arg != "all":
-        return [category_arg]
-    return sorted([p.name for p in root.iterdir() if p.is_dir()])
+    if category_arg == "all":
+        return sorted([p.name for p in root.iterdir() if p.is_dir()])
+    parts = [p.strip() for p in category_arg.split(",")]
+    return [p for p in parts if p]
 
 def build_loaders(root: str, category: str, image_size: int, batch_size: int, normalize: str):
     train_ds = MVTecAD(root, category, mode="train", image_size=image_size, normalize=normalize)
@@ -183,7 +186,7 @@ def main():
     ap.add_argument("--device", type=str, default="cpu")
     ap.add_argument("--epochs", type=int, default=5)          # AE
     ap.add_argument("--coreset_ratio", type=float, default=0.1)  # PatchCore
-    ap.add_argument("--out", type=str, default="outputs/bottle")
+    ap.add_argument("--out", type=str, default="outputs")
     ap.add_argument("--save_n", type=int, default=10)
     ap.add_argument("--save_all", action="store_true")
     ap.add_argument("--seed", type=int, default=0)
@@ -199,7 +202,7 @@ def main():
     all_rows = []
 
     for category in categories:
-        cat_out_root = out_root if args.category != "all" else out_root / category
+        cat_out_root = out_root / category
         cat_out_root.mkdir(parents=True, exist_ok=True)
 
         # shared backbone for padim/patchcore
