@@ -196,3 +196,23 @@ outputs/<category>/
   padim/
   patchcore/
 ```
+
+각 방법은 아래 파일들을 생성합니다.
+
+*_img.png : 입력 이미지
+
+*_gt.png : 정답 마스크 (흰색 = 결함)
+
+*_map.png : 이상 점수 히트맵 (그레이스케일)
+
+*_overlay.png : 입력 이미지 + 히트맵 오버레이
+
+요약 테이블도 함께 저장됩니다.
+outputs/summary.csv
+
+## 평가 지표
+- Image AUROC  
+  이미지별 이상 점수(heatmap의 최대값)를 기준으로 AUROC를 계산합니다.
+
+- Pixel AUROC  
+  픽셀 단위 이상 점수와 정답 마스크를 사용해 AUROC를 계산합니다.
