@@ -1,0 +1,7 @@
+# PatchCore config
+# Matches PatchCoreConfig in src/methods/patchcore.py
+
+device: cpu
+image_size: 224
+coreset_ratio: 0.1
+k: 1

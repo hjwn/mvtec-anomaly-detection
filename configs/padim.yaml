@@ -1,0 +1,6 @@
+# PaDiM config
+# Matches PaDiMConfig in src/methods/padim.py
+
+device: cpu
+image_size: 224
+eps: 1.0e-6

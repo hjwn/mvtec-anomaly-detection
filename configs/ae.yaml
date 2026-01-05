@@ -1,0 +1,8 @@
+# AutoEncoder config
+# Matches AEConfig in src/methods/ae.py
+
+device: cpu
+lr: 0.001
+epochs: 5
+base_ch: 64
+loss: l2
