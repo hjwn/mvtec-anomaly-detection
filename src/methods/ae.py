@@ -15,8 +15,10 @@ class ConvAE(nn.Module):
             nn.Conv2d(base_ch, base_ch*2, 4, 2, 1), nn.ReLU(True),
             nn.Conv2d(base_ch*2, base_ch*4, 4, 2, 1), nn.ReLU(True),
             nn.Conv2d(base_ch*4, base_ch*8, 4, 2, 1), nn.ReLU(True),
+            nn.Conv2d(base_ch*8, base_ch*16, 4, 2, 1), nn.ReLU(True),
         )
         self.dec = nn.Sequential(
+            nn.ConvTranspose2d(base_ch*16, base_ch*8, 4, 2, 1), nn.ReLU(True),
             nn.ConvTranspose2d(base_ch*8, base_ch*4, 4, 2, 1), nn.ReLU(True),
             nn.ConvTranspose2d(base_ch*4, base_ch*2, 4, 2, 1), nn.ReLU(True),
             nn.ConvTranspose2d(base_ch*2, base_ch,   4, 2, 1), nn.ReLU(True),
