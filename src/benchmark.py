@@ -257,7 +257,7 @@ def main():
         pc_dir = cat_out_root / "patchcore"
         pc_dir.mkdir(exist_ok=True)
         pc = PatchCoreMethod(PatchCoreConfig(device=args.device, image_size=args.image_size,
-                                             coreset_ratio=args.coreset_ratio, k=1), backbone)
+                                             coreset_ratio=0.08, pre_sample_ratio=0.12, k=5), backbone)
         results.append(
             run_one(
                 "patchcore",

@@ -10,7 +10,8 @@ class PatchCoreConfig:
     device: str = "cpu"
     image_size: int = 224
     coreset_ratio: float = 0.1  # 10% 저장
-    k: int = 1                  # kNN
+    pre_sample_ratio: float = 0.2  # k-center 전에 랜덤으로 줄이기
+    k: int = 5                  # kNN
 
 class PatchCoreMethod:
     def __init__(self, cfg: PatchCoreConfig, backbone):
@@ -18,6 +19,35 @@ class PatchCoreMethod:
         self.device = torch.device(cfg.device)
         self.backbone = backbone
         self.memory = None  # (M, C)
+
+    def _l2_distances(self, feats: torch.Tensor, center: torch.Tensor, chunk_size: int = 65536) -> torch.Tensor:
+        # Compute L2 distance to one center in chunks to avoid cdist's large allocations.
+        N = feats.shape[0]
+        out = torch.empty(N, dtype=feats.dtype)
+        c = center.to(feats.dtype).reshape(-1)
+        c_norm = (c * c).sum().item()
+        for start in range(0, N, chunk_size):
+            end = min(start + chunk_size, N)
+            x = feats[start:end]
+            d2 = (x * x).sum(dim=1) + c_norm - 2.0 * (x @ c)
+            out[start:end] = torch.sqrt(torch.clamp(d2, min=0.0))
+        return out
+
+    def _kcenter_greedy(self, feats: torch.Tensor, m: int) -> torch.Tensor:
+        # Approximate k-center greedy on CPU; O(m*N).
+        N = feats.shape[0]
+        if m >= N:
+            return torch.arange(N)
+        first = torch.randint(0, N, (1,))
+        selected = torch.empty(m, dtype=torch.long)
+        selected[0] = first
+        min_dist = self._l2_distances(feats, feats[first])
+        for i in range(1, m):
+            idx = torch.argmax(min_dist)
+            selected[i] = idx
+            d = self._l2_distances(feats, feats[idx])
+            min_dist = torch.minimum(min_dist, d)
+        return selected
 
     def fit(self, loader: DataLoader):
         feats = []
@@ -42,11 +72,20 @@ class PatchCoreMethod:
 
         feats = torch.cat(feats, dim=0)  # (N, C)
 
-        # --- random coreset sampling ---
+        # --- random pre-sample + approximate k-center greedy ---
         N = feats.shape[0]
         m = max(1, int(N * self.cfg.coreset_ratio))
-        idx = torch.randperm(N)[:m]
-        self.memory = feats[idx].to(self.device)
+        if self.cfg.pre_sample_ratio < 1.0:
+            n_pre = max(1, int(N * self.cfg.pre_sample_ratio))
+            pre_idx = torch.randperm(N)[:n_pre]
+            feats_sub = feats[pre_idx]
+        else:
+            pre_idx = None
+            feats_sub = feats
+
+        m_sub = min(m, feats_sub.shape[0])
+        idx_sub = self._kcenter_greedy(feats_sub, m_sub)
+        self.memory = feats_sub[idx_sub].to(self.device)
 
         print(f"[PatchCore] memory bank: {self.memory.shape} (ratio={self.cfg.coreset_ratio})")
 

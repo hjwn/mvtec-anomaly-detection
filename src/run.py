@@ -59,7 +59,7 @@ def main():
 
         backbone = ResNetFeatureExtractor(device=args.device, layers=("layer2", "layer3"))
         method = PatchCoreMethod(
-            PatchCoreConfig(device=args.device, image_size=args.image_size, coreset_ratio=0.1, k=1),
+            PatchCoreConfig(device=args.device, image_size=args.image_size, coreset_ratio=0.08, pre_sample_ratio=0.12, k=5),
             backbone
         )
 
