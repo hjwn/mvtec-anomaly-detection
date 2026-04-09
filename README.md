@@ -134,10 +134,6 @@ AE 학습 loss curve 예시:
 - `S_eff`는 일부 카테고리에서 `AE`가 우세
 - `overall_model` 기준 평균 성능은 `PaDiM`이 가장 안정적
 
-예를 들어 [`outputs/results/run_2026-03-27_15-51-40/scenario_winners_by_category.csv`](/c:/Users/sunde/Documents/projects/mvtec-anomaly-detection/outputs/results/run_2026-03-27_15-51-40/scenario_winners_by_category.csv) 에서는 `bottle`, `cable`, `capsule`에서 `PaDiM`이 `S_perf` 우승 모델로 기록되어 있습니다.
-
-[`outputs/results/run_2026-03-27_15-51-40/seed_aggregated_summary.csv`](/c:/Users/sunde/Documents/projects/mvtec-anomaly-detection/outputs/results/run_2026-03-27_15-51-40/seed_aggregated_summary.csv) 기준 `overall_model` 평균도 `PaDiM`이 가장 높은 균형 성능을 보였습니다.
-
 ## Evaluation Metrics
 
 - `Image AUROC`
@@ -152,8 +148,3 @@ AE 학습 loss curve 예시:
   효율 중심 점수입니다.
 
 정규화, 시나리오 스코어, seed 집계 로직은 [`src/utils/scoring.py`](/c:/Users/sunde/Documents/projects/mvtec-anomaly-detection/src/utils/scoring.py) 에 정리되어 있습니다.
-
-## Notes
-
-- `outputs/`는 `.gitignore` 대상이라 실험 산출물 전체는 기본적으로 추적되지 않습니다.
-- README에 쓰는 이미지는 문서용으로 `docs/assets/`에 별도 복사해 두는 편이 안전합니다.
